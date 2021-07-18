@@ -23,7 +23,7 @@ class Hand:
         # prevent double-counting
         self.count = 0
         # the set is not ordered. so, a first pass of non-aces must be calculated
-        # then, we know if we need to tread the aces as 1 or 11
+        # then, we know if we need to treat the aces as 1 or 11
         ace_count = 0
         for card in self.cards:
             if card.value != 1:
@@ -51,4 +51,5 @@ class Hand:
     def clear_hand(self):
         self.cards.clear()
         self.count = 0
+        self.stand = False
           

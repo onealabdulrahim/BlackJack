@@ -13,24 +13,34 @@ from Deck import Deck
 from Hand import Hand
 import time
 
-NUMBER_OF_DECKS = 6
-CUT_CARD_COUNT = 10
-DECK = Deck(6)
-
-# Dealer Hand
+NUMBER_OF_DECKS = 1
+CUT_CARD_COUNT = 8
+PLAYER_WINS = 0
+DEALER_WINS = 0
+TOTAL_HANDS = 0
+DECK = Deck(0)
 DEALER_HAND = Hand([],0)
-# Player Hands
 PLAYER_HANDS = [Hand([],0)]
 
-
 def cleanup_table():
-    #DEALER_HAND.clear_hand()
-    #for hand in PLAYER_HANDS:
-    #    hand.clear_hand()
-    #while (len(PLAYER_HANDS) > 1):
-    #    PLAYER_HANDS.pop(0)
-    #initial_draw()
-    exit()
+    print("[DBG] FUNC ENTRY: cleanup_table")
+    DEALER_HAND.clear_hand()
+    for hand in PLAYER_HANDS:
+        hand.clear_hand()
+    while (len(PLAYER_HANDS) > 1):
+        PLAYER_HANDS.pop(0)
+
+# create and shuffle deck
+def create_shuffle_deck(number_of_decks):
+    print("[DBG] FUNC ENTRY: create_shuffle_deck")
+    deck = Deck(number_of_decks)
+    deck.shuffle_deck()
+    return DECK
+    
+# Burn a card, show burn
+def burn_card():
+    print("[DBG] FUNC ENTRY: burn_card")
+    print('\nburn card:', DECK.pop_card().get_card_symbol())
 
 def show_cards_hidden_dealer():
     # show some cards
@@ -45,7 +55,8 @@ def show_cards_flipped_dealer():
     for hand in PLAYER_HANDS:
         print("\nPLAYER\n", hand)
 
-def initial_draw():
+def draw():
+    print("[DBG] FUNC ENTRY: draw")
     # Player, dealer, player, dealer, yes it matters
     PLAYER_HANDS[0].add_card(DECK.pop_card())
     DEALER_HAND.add_card(DECK.pop_card())
@@ -57,15 +68,18 @@ def initial_draw():
         if PLAYER_HANDS[0].count != 21:
             print("\nDealer has BlackJack!")
         else:
-            print("push")
+            print("push.... BlackJack = BlackJack")
         show_cards_flipped_dealer()
         cleanup_table()
+        draw()
     # Does the player have BlackJack?
     elif PLAYER_HANDS[0].count == 21: 
         print("\nplayer has BlackJack!")
-        cleanup_table()
+        show_cards_flipped_dealer()
+
 
 def player_loop():
+    print("[DBG] FUNC ENTRY: player_loop")
     # Player has some options
     for hand in PLAYER_HANDS:
         while not hand.stand:
@@ -75,8 +89,8 @@ def player_loop():
             if len(hand.cards) == 2:
                 if PLAYER_HANDS[0].cards[0].value == PLAYER_HANDS[0].cards[1].value:
                     print("4: split")
-            player_choice = (input("\naction: "))
-
+            player_choice = input("\naction: ")
+            
             if player_choice == "0":
                 print("\nplayer surrendered hand")
                 hand.clear_hand()
@@ -89,9 +103,9 @@ def player_loop():
                 hand.add_card(DECK.pop_card())
                 if hand.count > 21:
                     show_cards_flipped_dealer()
-                    print("\n\nbust!")
+                    print("\n\nplayer bust!")
+                    hand.stand = True
                     time.sleep(2)
-                    cleanup_table()
                 else:
                     show_cards_hidden_dealer()
             elif player_choice == "3":
@@ -114,34 +128,51 @@ def player_loop():
                     hand.stand
                 else:
                     PLAYER_HANDS.append(new_hand)
-                
 
 def dealer_loop():
+    print("[DBG] FUNC ENTRY: dealer_loop")
+    global PLAYER_WINS, DEALER_WINS, TOTAL_HANDS
     show_cards_flipped_dealer()
     time.sleep(1)
 
-    while DEALER_HAND.count < 17:
-        DEALER_HAND.add_card(DECK.pop_card())
+    if len(PLAYER_HANDS) == 1 and (PLAYER_HANDS[0].count == 0 or PLAYER_HANDS[0].count > 21):
         show_cards_flipped_dealer()
-        time.sleep(1)
-
-    if DEALER_HAND.count > 21:
-        print("dealer bust")
+        DEALER_WINS += 1
+        print("dealer win")
+        TOTAL_HANDS += 1
     else:
-        for hand in PLAYER_HANDS:
-            if DEALER_HAND.count > hand.count:
-                print("dealer win")
-            else:
-                print("player win")
-            print("{} > {}".format(DEALER_HAND.count, hand.count))
+        while DEALER_HAND.count < 17:
+            DEALER_HAND.add_card(DECK.pop_card())
+            show_cards_flipped_dealer()
+            time.sleep(1)
+
+        if DEALER_HAND.count > 21:
+            print("dealer bust")
+            PLAYER_WINS += 1
+            TOTAL_HANDS += 1
+        else:
+            for hand in PLAYER_HANDS:
+                if DEALER_HAND.count == hand.count:
+                    print("push")
+                    print("{} = {}".format(DEALER_HAND.count, hand.count))
+                else:
+                    if DEALER_HAND.count > hand.count or hand.count > 21:
+                        DEALER_WINS += 1
+                        print("dealer win")
+                    else:
+                        print("player win")
+                        PLAYER_WINS += 1
+                    print("{} > {}".format(DEALER_HAND.count, hand.count))
+            TOTAL_HANDS += 1
+    time.sleep(1)
+
+DECK = create_shuffle_deck(NUMBER_OF_DECKS)
+burn_card()
+
+while (len(DECK.cards) > CUT_CARD_COUNT):
     cleanup_table()
+    draw()
+    player_loop()
+    dealer_loop()
 
-# Shuffle Deck
-DECK.shuffle_deck()
-
-# Burn a card, show burn
-print('\nburn card:', DECK.pop_card().get_card_symbol())
-
-initial_draw()
-player_loop()
-dealer_loop()
+print ("\ngame over! stats:\nplayer wins:{}\ndealer wins:{}\nwin:{:.2%}".format(PLAYER_WINS, DEALER_WINS, PLAYER_WINS / TOTAL_HANDS))
