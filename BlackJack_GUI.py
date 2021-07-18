@@ -7,6 +7,7 @@ As part of the Blackjack suite
 @author Oneal Abdulrahim
 '''
 import tkinter
+from BlackJack import *
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
