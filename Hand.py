@@ -15,9 +15,11 @@ class Hand:
         self.update_count()
 
     def __str__(self):
+        output = ""
         for card in self.cards:
+            output = output + card.get_card_symbol()
             print(card.get_card_symbol(), end=' ')
-        return '\n  {self.count}'.format(self=self)
+        return output
 
     def update_count(self):
         # prevent double-counting
