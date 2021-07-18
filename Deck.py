@@ -13,7 +13,7 @@ As part of the Blackjack suite
 @author Oneal Abdulrahim
 '''
 
-from Card import Card
+from Card import *
 from Suit import *
 from random import shuffle
 
@@ -28,10 +28,19 @@ class Deck:
         else:
             self.num_decks = 1
 
+        # standard deck
         for _ in range(0, num_decks):
             for suit in SUITS:
                 for ranks_values in RANKS_VALUES:
-                    self.cards.append(Card(suit, ranks_values[0], ranks_values[1]))
+                    symbol = CARD_SYMBOLS[suit.value * 13 + ranks_values[1]]
+                    if ranks_values[0] == "Jack":
+                        symbol = CARD_SYMBOLS[suit.value * 13 + 11]
+                    elif ranks_values[0] == "Queen":
+                        symbol = CARD_SYMBOLS[suit.value * 13 + 12]
+                    elif ranks_values[0] == "King":
+                        symbol = CARD_SYMBOLS[suit.value * 13 + 13]
+
+                    self.cards.append(Card(suit, ranks_values[0], ranks_values[1], symbol))
 
     def __str__(self):
         for card in self.cards:
